@@ -1,35 +1,39 @@
-# Rust Todo CLI
+# Rust Todo Manager
 
-A simple command-line todo list manager with a colorful interface.
+A command-line todo list manager with priorities, due dates, and categories.
 
-## Setup
+## Quick Start
 
 ```bash
+# Install
+git clone [repository-url]
+cd todo-list
 cargo build --release
-```
 
-## Usage
+# Add tasks
+cargo run -- add "Task name"                                                   # Basic task
+cargo run -- add "Important task" --priority high --due "2024-12-25"          # With priority and due date
+cargo run -- add "Work project" --priority high --tag work --tag urgent       # With tags
 
-```bash
-# Add a todo
-cargo run -- add "Learn Rust"
+# View tasks
+cargo run -- list                       # Show incomplete tasks
+cargo run -- list --completed          # Show completed tasks
+cargo run -- list --priority high      # Filter by priority
+cargo run -- list --tag work           # Filter by tag
 
-# List todos
-cargo run -- list
-cargo run -- list --completed
-
-# Complete/Delete todos
-cargo run -- complete <id>
-cargo run -- delete <id>
+# Other commands
+cargo run -- search "project"          # Search tasks
+cargo run -- complete 1                # Complete task
+cargo run -- delete 1                  # Delete task
 ```
 
 ## Features
 
-- ✨ Colorful interface
-- 📝 Add, complete, and delete todos
-- 💾 Automatic JSON storage
-- 🕒 Timestamp tracking
+- Priority levels: `high` (⚠), `medium` (◆), `low` (○)
+- Due dates and categories/tags
+- Persistent JSON storage
+- Colored output
 
-## License
+## Dependencies
 
-MIT - See [LICENSE](LICENSE) for details
+Dependencies managed through Cargo.toml: `colored`, `serde`, `chrono`, `structopt`
