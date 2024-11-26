@@ -4,6 +4,7 @@ use std::io;
 use chrono::{DateTime, Local};
 use std::path::PathBuf;
 use structopt::StructOpt;
+use colored::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Todo {
@@ -15,24 +16,28 @@ struct Todo {
 }
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "todo", about = "A command-line todo list manager")]
+#[structopt(
+    name = "todo",
+    about = "A feature-rich command-line todo list manager",
+    after_help = "Example: todo add \"Learn Rust\""
+)]
 enum Cli {
-    #[structopt(name = "add")]
+    #[structopt(name = "add", about = "Add a new todo item")]
     Add {
         #[structopt(help = "The todo item to add")]
         title: String,
     },
-    #[structopt(name = "list")]
+    #[structopt(name = "list", about = "List all todo items")]
     List {
         #[structopt(short, long, help = "Show only completed items")]
         completed: bool,
     },
-    #[structopt(name = "complete")]
+    #[structopt(name = "complete", about = "Mark a todo item as complete")]
     Complete {
         #[structopt(help = "The id of the todo item to complete")]
         id: usize,
     },
-    #[structopt(name = "delete")]
+    #[structopt(name = "delete", about = "Delete a todo item")]
     Delete {
         #[structopt(help = "The id of the todo item to delete")]
         id: usize,
@@ -64,6 +69,7 @@ impl TodoList {
 
     fn add(&mut self, title: String) -> io::Result<()> {
         let id = self.todos.len() + 1;
+        let display_title = title.clone();  // Clone it before moving
         let todo = Todo {
             id,
             title,
@@ -72,38 +78,81 @@ impl TodoList {
             completed_at: None,
         };
         self.todos.push(todo);
-        self.save()
+        self.save()?;
+        println!("{} Added new todo: {}", "✓".green(), display_title.cyan());
+        Ok(())
     }
 
     fn list(&self, show_completed: bool) {
+        println!("\n{}",
+            if show_completed {
+                "📋 Completed Tasks".green()
+            } else {
+                "📋 Pending Tasks".blue()
+            }
+        );
+        println!("{}", "=".repeat(50));
+
+        let mut found = false;
         for todo in &self.todos {
             if show_completed == todo.completed {
+                found = true;
+                let status = if todo.completed {
+                    "✓".green()
+                } else {
+                    "○".yellow()
+                };
+                
                 println!(
-                    "[{}] {}: {} (created: {})",
-                    if todo.completed { "✓" } else { " " },
-                    todo.id,
-                    todo.title,
-                    todo.created_at.format("%Y-%m-%d %H:%M")
+                    "{} [{}] {} {}",
+                    status,
+                    todo.id.to_string().cyan(),
+                    todo.title.white(),
+                    format!("(created: {})", 
+                        todo.created_at.format("%Y-%m-%d %H:%M")).dimmed()
                 );
+
+                if let Some(completed_at) = todo.completed_at {
+                    println!(
+                        "     {} {}", 
+                        "↳ completed:".green(),
+                        completed_at.format("%Y-%m-%d %H:%M").to_string().dimmed()
+                    );
+                }
             }
         }
+
+        if !found {
+            println!("{}", 
+                if show_completed {
+                    "No completed tasks yet!".yellow()
+                } else {
+                    "No pending tasks - time to add some!".yellow()
+                }
+            );
+        }
+        println!();
     }
 
     fn complete(&mut self, id: usize) -> io::Result<()> {
         let title = match self.todos.iter_mut().find(|t| t.id == id) {
             Some(todo) => {
+                if todo.completed {
+                    println!("{} Task {} is already completed!", "!".yellow(), id);
+                    return Ok(());
+                }
                 todo.completed = true;
                 todo.completed_at = Some(Local::now());
                 todo.title.clone()
             }
             None => {
-                println!("Todo with id {} not found", id);
+                println!("{} Todo with id {} not found", "✗".red(), id);
                 return Ok(());
             }
         };
         
         self.save()?;
-        println!("Completed todo: {}", title);
+        println!("{} Completed: {}", "✓".green(), title.cyan());
         Ok(())
     }
 
@@ -114,18 +163,26 @@ impl TodoList {
                 todo.title
             }
             None => {
-                println!("Todo with id {} not found", id);
+                println!("{} Todo with id {} not found", "✗".red(), id);
                 return Ok(());
             }
         };
         
         self.save()?;
-        println!("Deleted todo: {}", title);
+        println!("{} Deleted: {}", "✗".red(), title.cyan());
         Ok(())
     }
 }
 
+fn print_banner() {
+    println!("\n{}", r#"
+╭──────────────────────────────╮
+│     RUST TODO MANAGER        │
+╰──────────────────────────────╯"#.cyan());
+}
+
 fn main() -> io::Result<()> {
+    print_banner();
     let mut todo_list = TodoList::new()?;
     let cli = Cli::from_args();
 

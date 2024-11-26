@@ -5,5 +5,12 @@
     "completed": true,
     "created_at": "2024-11-25T21:41:57.655599500-05:00",
     "completed_at": "2024-11-25T21:42:18.149273800-05:00"
+  },
+  {
+    "id": 2,
+    "title": "Testing New CLI",
+    "completed": false,
+    "created_at": "2024-11-25T22:51:01.191595600-05:00",
+    "completed_at": null
   }
 ]
