@@ -262,9 +262,9 @@ impl TodoList {
 
 fn print_banner() {
     println!("\n{}", r#"
-╭──────────────────────────────╮
-│     RUST TODO MANAGER        │
-╰──────────────────────────────╯"#.cyan());
+╭────────────────────────────────╮
+│     RUST TODO MANAGER          │
+╰────────────────────────────────╯"#.cyan());
 }
 
 fn main() -> io::Result<()> {
